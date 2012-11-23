@@ -18,9 +18,10 @@ class MongoDBCache(BaseCache):
     def __init__(self, location, params):
         BaseCache.__init__(self, params)
         self.location = location
-        self._host = 'localhost'
-        self._port = 27017
-        self._database = 'django_cache'
+        options = params.get('OPTIONS', {})
+        self._host = options.get('HOST', 'localhost')
+        self._port = options.get('PORT', 27017)
+        self._database = options.get('DATABASE', 'django_cache')
         self._collection =  location
 
     def make_key(self, key, version=None):

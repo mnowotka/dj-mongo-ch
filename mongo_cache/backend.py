@@ -8,7 +8,7 @@ except ImportError:
 import base64
 import pymongo
 import re
-from gevent import monkey
+#from gevent import monkey
 from pymongo.errors import OperationFailure, TimeoutError
 from datetime import datetime, timedelta
 from django.core.cache.backends.base import BaseCache
@@ -115,7 +115,7 @@ class MongoDBCache(BaseCache):
 
 
     def _initialize_collection(self):
-        monkey.patch_socket()
-        self.connection = pymongo.Connection(self._host, self._port, use_greenlets=True)
+        #monkey.patch_socket()
+        self.connection = pymongo.Connection(self._host, self._port)
         self._db = self.connection[self._database]
         self._coll= self._db[self._collection]

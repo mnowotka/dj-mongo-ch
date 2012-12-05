@@ -8,7 +8,6 @@ except ImportError:
 import base64
 import pymongo
 import re
-#from gevent import monkey
 from pymongo.errors import OperationFailure, TimeoutError
 from datetime import datetime, timedelta
 from django.core.cache.backends.base import BaseCache

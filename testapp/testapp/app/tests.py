@@ -4,6 +4,7 @@
 from django.utils import unittest
 from django.core.cache import get_cache
 import time
+import random
 
 class CacheTest(unittest.TestCase):
 
@@ -23,7 +24,14 @@ class CacheTest(unittest.TestCase):
         self.cache.clear()
         self.assertIsNone(self.cache.get('adwadwad'))
 
-    def test_timeout(self):
-        self.cache.add('sefgragrsaf', 'ryjtrsdwada')
-        time.sleep(2)#depends on 1s timeout in settings!
-        self.assertIsNone(self.cache.get('sefgragrsaf'))
+#    def test_timeout(self):
+#        self.cache.add('sefgragrsaf', 'ryjtrsdwada')
+#        time.sleep(2)#depends on 1s timeout in settings!
+#        self.assertIsNone(self.cache.get('sefgragrsaf'))
+
+    def test_get_many(self):
+        self.cache.add('wfsafwa', 'eavtrtWRXWa')
+        res = self.cache.get_many(['wfsafwa'])
+        self.assertEqual('eavtrtWRXWa', res['wfsafwa'])
+
+

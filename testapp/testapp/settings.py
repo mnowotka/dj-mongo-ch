@@ -136,7 +136,7 @@ CACHES = {
     'default': {
         'BACKEND': 'mongo_cache.backend.MongoDBCache',
         'LOCATION': 'alamakota',
-        'TIMEOUT': 1
+        'TIMEOUT': 5
     }
 }
 

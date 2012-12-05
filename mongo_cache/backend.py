@@ -81,6 +81,27 @@ class MongoDBCache(BaseCache):
         unpickled = pickle.loads(unencoded)
         return unpickled
 
+    def get_many(self, keys, version=None):
+        coll = self._get_collection()
+        now = datetime.utcnow()
+        out = {}
+        parsed_keys = {}
+        to_remove = []
+        for key in keys:
+            pkey = self.make_key(key, version)
+            self.validate_key(pkey)
+            parsed_keys[pkey] = key
+        data = coll.find({'key': {'$in': parsed_keys.keys()}})
+        for result in data:
+            if result['expires'] < now:
+                to_remove.append(result['_id'])
+            unencoded = base64.decodestring(result['data'])
+            unpickled = pickle.loads(unencoded)
+            out[parsed_keys[result['key']]] = unpickled
+        if to_remove:
+            coll.remove({'_id': {'$in': to_remove}})
+        return out
+
     def delete(self, key, version=None):
         key = self.make_key(key, version)
         self.validate_key(key)

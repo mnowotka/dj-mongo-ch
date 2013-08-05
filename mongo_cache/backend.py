@@ -21,7 +21,10 @@ class MongoDBCache(BaseCache):
         self._host = options.get('HOST', 'localhost')
         self._port = options.get('PORT', 27017)
         self._database = options.get('DATABASE', 'django_cache')
-        self._collection =  location
+        self._rshosts = options.get('RSHOSTS')
+        self._rsname = options.get('RSNAME')
+        self._read_preference = options.get("READ_PREFERENCE")
+        self._collection = location
 
     def make_key(self, key, version=None):
         """
@@ -136,6 +139,9 @@ class MongoDBCache(BaseCache):
 
     def _initialize_collection(self):
         #monkey.patch_socket()
-        self.connection = pymongo.Connection(self._host, self._port)
+        if self._rsname:
+            self.connection = pymongo.MongoReplicaSetClient(self._rshosts, replicaSet=self._rsname, read_preference=self._read_preference)
+        else:
+            self.connection = pymongo.Connection(self._host, self._port)
         self._db = self.connection[self._database]
         self._coll= self._db[self._collection]

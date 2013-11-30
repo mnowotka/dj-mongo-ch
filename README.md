@@ -1,4 +1,4 @@
-improved django-mongo-cache
+django-mongodb-cache
 ==================
 
 This is a fork from sicarrots orginal django-mongo-cache backend.

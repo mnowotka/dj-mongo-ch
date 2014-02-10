@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # Author Karol Sikora <karol.sikora@laboratorium.ee>, (c) 2012
+# Author Michal Nowotka <mmmnow@gmail.com>, (c) 2013-2014
 
 try:
     import cPickle as pickle
@@ -66,21 +67,21 @@ class MongoDBCache(BaseCache):
         count = coll.count()
         if count > self._max_entries:
             self._cull()
-        data = coll.find_one({'key': key})
+        data = coll.find_one({'_id': key})
         if data and (mode == 'set' or
                 (mode == 'add' and data['expires'] > now)):
             coll.update({'_id': data['_id']}, {'$set': {'expires': expires}}, safe=True)
         else:
             if document_size <= MAX_SIZE:
-                coll.insert({'key': key, 'data': encoded, 'expires': expires}, safe=True)
+                coll.insert({'_id': key, 'data': encoded, 'expires': expires}, safe=True)
             else:
                 chunks = []
                 for i in xrange(0, document_size, MAX_SIZE):
                     chunk = encoded[i:i+MAX_SIZE]
                     aux_key = self.make_key(chunk)
-                    coll.insert({'key': aux_key, 'data': chunk}, safe=True)
+                    coll.insert({'_id': aux_key, 'data': chunk}, safe=True)
                     chunks.append(aux_key)
-                coll.insert({'key': key, 'chunks': chunks, 'expires': expires}, safe=True)
+                coll.insert({'_id': key, 'chunks': chunks, 'expires': expires}, safe=True)
 
 #-----------------------------------------------------------------------------------------------------------------------
 
@@ -99,7 +100,7 @@ class MongoDBCache(BaseCache):
         key = self.make_key(key, version)
         self.validate_key(key)
         now = datetime.utcnow()
-        data = coll.find_one({'key': key})
+        data = coll.find_one({'_id': key})
         if not data:
             return default
         if data['expires'] < now:
@@ -111,7 +112,7 @@ class MongoDBCache(BaseCache):
             raw = ''
             chunks = data.get('chunks')
             for chunk in chunks:
-                raw += coll.find_one({'key': chunk})['data']
+                raw += coll.find_one({'_id': chunk})['data']
         else:
             return default
         return self._decode(raw)
@@ -128,7 +129,7 @@ class MongoDBCache(BaseCache):
             pkey = self.make_key(key, version)
             self.validate_key(pkey)
             parsed_keys[pkey] = key
-        data = coll.find({'key': {'$in': parsed_keys.keys()}})
+        data = coll.find({'_id': {'$in': parsed_keys.keys()}})
         for result in data:
             if result['expires'] < now:
                 to_remove.append(result['_id'])
@@ -138,8 +139,8 @@ class MongoDBCache(BaseCache):
                 raw = ''
                 chunks = result.get('chunks')
                 for chunk in chunks:
-                    raw += coll.find_one({'key': chunk})['data']
-            out[parsed_keys[result['key']]] = self._decode(raw)
+                    raw += coll.find_one({'_id': chunk})['data']
+            out[parsed_keys[result['_id']]] = self._decode(raw)
         if to_remove:
             coll.remove({'_id': {'$in': to_remove}})
         return out
@@ -150,7 +151,7 @@ class MongoDBCache(BaseCache):
         key = self.make_key(key, version)
         self.validate_key(key)
         coll = self._get_collection()
-        coll.remove({'key': key})
+        coll.remove({'_id': key})
 
 #-----------------------------------------------------------------------------------------------------------------------
 
@@ -158,7 +159,7 @@ class MongoDBCache(BaseCache):
         coll = self._get_collection()
         key = self.make_key(key, version)
         self.validate_key(key)
-        data = coll.find_one({'key': key, 'expires': {'$gt': datetime.utcnow()}})
+        data = coll.find_one({'_id': key, 'expires': {'$gt': datetime.utcnow()}})
         return data is not None
 
 #-----------------------------------------------------------------------------------------------------------------------
